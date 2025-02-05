@@ -46,6 +46,7 @@ def ssim ( y_true, y_pred ):
  return tf.image.ssim_multiscale( y_true, y_pred, max_val=1.0 )
 
 # Evaluation metrics
+@tf.keras.utils.register_keras_serializable()
 def jaccard_index(y_true, y_pred, t=0.5):
     """Define Jaccard index.
        Args:

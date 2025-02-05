@@ -5,7 +5,7 @@ from tensorflow.keras import layers
 
 class Patches(layers.Layer):
     # It takes a batch of images and returns a batch of patches
-    def __init__(self, patch_size):
+    def __init__(self, patch_size, **kwargs):
         super(Patches, self).__init__()
         self.patch_size = patch_size
 
@@ -24,7 +24,7 @@ class Patches(layers.Layer):
 
 class PatchEncoder(layers.Layer):
     # It takes patches and projects them into a `projection_dim` dimensional space, then the position embedding is added
-    def __init__(self, num_patches, projection_dim):
+    def __init__(self, num_patches, projection_dim, **kwargs):
         super(PatchEncoder, self).__init__()
         self.num_patches = num_patches
         self.projection = layers.Dense(units=projection_dim)

@@ -33,12 +33,12 @@ def get_xy_image_list(dir):
     print( 'Input images loaded: {} -- Label images loaded: {}\n\tpath: {}'.format(len(train_input_filenames), len(train_label_filenames), dir) )
 
     # read training images and labels
-    train_img = [ img_as_ubyte( np.array(io.imread( x ), dtype='uint8') ) for x in train_input_filenames ]
-    train_lbl = [ img_as_ubyte( np.array(io.imread( x ), dtype='uint8') ) for x in train_label_filenames ]
+    train_img = [ img_as_ubyte( np.array(io.imread( x, as_gray=True ))) for x in train_input_filenames ]
+    train_lbl = [ img_as_ubyte( np.array(io.imread( x, as_gray=True ), dtype='uint8') ) for x in train_label_filenames ]
     
     return train_img, train_lbl
 
-def create_patches( imgs, num_x_patches, num_y_patches ):
+def create_patches( imgs, exp_h, exp_w ):
     ''' Create a list of images patches out of a list of images
     Args:
         imgs: list of input images
@@ -47,14 +47,17 @@ def create_patches( imgs, num_x_patches, num_y_patches ):
         
     Returns:
         list of image patches
-    '''
-    original_size = imgs[0].shape
-    patch_width = original_size[ 0 ] // num_y_patches
-    patch_height = original_size[ 1 ] // num_x_patches
-    
+    '''    
     patches = []
     for n in range( 0, len( imgs ) ):
         image = imgs[ n ]
+        h, w = image.shape
+        num_x_patches = int(np.ceil(w/exp_w))
+        num_y_patches = int(np.ceil(h/exp_h))
+        original_size = image.shape
+        patch_width = original_size[ 0 ] // num_y_patches
+        patch_height = original_size[ 1 ] // num_x_patches
+
         for i in range( 0, num_y_patches ):
             for j in range( 0, num_x_patches ):
                 patches.append( image[ i * patch_width : (i+1) * patch_width,
@@ -256,16 +259,24 @@ def filter_patches(img_list, lbl_list, zeros_perc = 0.5):
 #source_img_f, source_lbl_f = filter_patches(source_img, source_lbl)
 
 # %%
-def mirror_border(image, sizeH, sizeW):
-    h_res = sizeH - image.shape[0]
-    w_res = sizeW - image.shape[1]
-
-    top = bot = h_res // 2
-    left = right = w_res // 2
-    top += 1 if h_res % 2 != 0 else 0
-    left += 1 if w_res % 2 != 0 else 0
-
-    res_image = np.pad(image, ((top, bot), (left, right)), 'symmetric')
+def mirror_border(image, exp_h, exp_w):
+    h, w = image.shape
+    res_image = image
+    if w%exp_w != 0 and h%exp_h != 0:
+        w_parts = w/exp_w
+        h_parts = h/exp_h
+        new_w = int(np.ceil(w_parts))*exp_w
+        new_h = int(np.ceil(h_parts))*exp_h
+        # MIRROR PADDING
+        
+        h_res = new_h - image.shape[0]
+        w_res = new_w - image.shape[1]
+    
+        top = bot = h_res // 2
+        left = right = w_res // 2
+        top += 1 if h_res % 2 != 0 else 0
+        left += 1 if w_res % 2 != 0 else 0
+        res_image = np.pad(image, ((top, bot), (left, right)), 'symmetric')
     return res_image
 
 # Random rotation of an image by a multiple of 90 degrees
